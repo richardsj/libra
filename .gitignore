@@ -1,33 +1,12 @@
 # Rust specific ignores
-/target
+# Please follow https://help.github.com/en/articles/ignoring-files to create a global
+# .gitignore file locally for IDE/Emacs/Vim generated files.
+**/target
 **/*.rs.bk
-# Cargo.lock is needed for deterministic testing and repeatable builds.
-#
-# Having it in the repo slows down development cycle.
-#
-# More information here https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html
-Cargo.lock
-
-# Ignore generated files in proto folders
-**/proto/*.rs
-!**/proto/mod.rs
-!**/proto/converter.rs
-**/proto/*/*.rs
-!**/proto/*/mod.rs
-!**/proto/*/converter.rs
-
-# IDE
-.idea
-.idea/*
-*.iml
-.vscode
+.idea/
 
 # Ignore wallet mnemonic files used for deterministic key derivation
 *.mnemonic
-
-# Generated Parser File by LALRPOP
-language/compiler/src/parser/syntax.rs
-language/move_ir/
 
 # GDB related
 **/.gdb_history
@@ -56,3 +35,28 @@ language/move_ir/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Generated VM config in vm-genesis
+diem-move/vm-genesis/genesis/vm_config.toml
+
+# Terraform
+.terraform/
+
+# Move Build Output
+build/
+
+# Move coverage and tracing information
+.trace
+*.mvcov
+
+# Do not ignore the Move build output under the releases for DPN, core, and
+# experimental -- these are the release code.
+!diem-move/diem-framework/DPN/releases/artifacts/**
+!diem-move/diem-framework/experimental/releases/artifacts/**
+
+# Docker incremental build temporary files and directories
+target-out-docker
+**/Dockerfile.tmp
+
+# Doc generation output
+*.md.old

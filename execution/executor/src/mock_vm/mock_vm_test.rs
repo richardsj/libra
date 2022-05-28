@@ -1,19 +1,14 @@
-// Copyright (c) The Libra Core Contributors
+// Copyright (c) The Diem Core Contributors
 // SPDX-License-Identifier: Apache-2.0
 
 use super::{balance_ap, encode_mint_transaction, encode_transfer_transaction, seqnum_ap, MockVM};
-use config::config::VMConfig;
-use failure::Result;
-use state_view::StateView;
-use types::{
-    access_path::AccessPath,
-    account_address::{AccountAddress, ADDRESS_LENGTH},
-    write_set::WriteOp,
-};
-use vm_runtime::VMExecutor;
+use anyhow::Result;
+use diem_state_view::StateView;
+use diem_types::{access_path::AccessPath, account_address::AccountAddress, write_set::WriteOp};
+use diem_vm::VMExecutor;
 
 fn gen_address(index: u8) -> AccountAddress {
-    AccountAddress::new([index; ADDRESS_LENGTH])
+    AccountAddress::new([index; AccountAddress::LENGTH])
 }
 
 struct MockStateView;
@@ -21,10 +16,6 @@ struct MockStateView;
 impl StateView for MockStateView {
     fn get(&self, _access_path: &AccessPath) -> Result<Option<Vec<u8>>> {
         Ok(None)
-    }
-
-    fn multi_get(&self, _access_paths: &[AccessPath]) -> Result<Vec<Option<Vec<u8>>>> {
-        unimplemented!();
     }
 
     fn is_genesis(&self) -> bool {
@@ -40,14 +31,11 @@ fn test_mock_vm_different_senders() {
         txns.push(encode_mint_transaction(gen_address(i), amount));
     }
 
-    let outputs = MockVM::execute_block(
-        txns.clone(),
-        &VMConfig::empty_whitelist_FOR_TESTING(),
-        &MockStateView,
-    );
+    let outputs = MockVM::execute_block(txns.clone(), &MockStateView)
+        .expect("MockVM should not fail to start");
 
     for (output, txn) in itertools::zip_eq(outputs.iter(), txns.iter()) {
-        let sender = txn.sender();
+        let sender = txn.as_signed_user_txn().unwrap().sender();
         assert_eq!(
             output.write_set().iter().cloned().collect::<Vec<_>>(),
             vec![
@@ -73,11 +61,8 @@ fn test_mock_vm_same_sender() {
         txns.push(encode_mint_transaction(sender, amount));
     }
 
-    let outputs = MockVM::execute_block(
-        txns,
-        &VMConfig::empty_whitelist_FOR_TESTING(),
-        &MockStateView,
-    );
+    let outputs =
+        MockVM::execute_block(txns, &MockStateView).expect("MockVM should not fail to start");
 
     for (i, output) in outputs.iter().enumerate() {
         assert_eq!(
@@ -98,20 +83,14 @@ fn test_mock_vm_same_sender() {
 
 #[test]
 fn test_mock_vm_payment() {
-    let mut txns = vec![];
-    txns.push(encode_mint_transaction(gen_address(0), 100));
-    txns.push(encode_mint_transaction(gen_address(1), 100));
-    txns.push(encode_transfer_transaction(
-        gen_address(0),
-        gen_address(1),
-        50,
-    ));
+    let txns = vec![
+        encode_mint_transaction(gen_address(0), 100),
+        encode_mint_transaction(gen_address(1), 100),
+        encode_transfer_transaction(gen_address(0), gen_address(1), 50),
+    ];
 
-    let output = MockVM::execute_block(
-        txns,
-        &VMConfig::empty_whitelist_FOR_TESTING(),
-        &MockStateView,
-    );
+    let output =
+        MockVM::execute_block(txns, &MockStateView).expect("MockVM should not fail to start");
 
     let mut output_iter = output.iter();
     output_iter.next();

@@ -1,63 +1,45 @@
-<a href="https://developers.libra.org">
-	<img width="200" src="./.assets/libra.png" alt="Libra Logo" />
+> **Note to readers:** Silvergate Capital Corporation announced in January 2022 that it acquired intellectual property and other technology assets related to running a blockchain-based payment network from Diem, further investing in its platform and enhancing its existing stablecoin infrastructure.
+<a href="https://developers.diem.com">
+	<img width="200" src="./.assets/diem.png" alt="Diem Logo" />
 </a>
 
-<hr/>
+---
 
-[![CircleCI](https://circleci.com/gh/libra/libra.svg?style=shield)](https://circleci.com/gh/libra/libra)
-[![License](https://img.shields.io/badge/license-Apache-green.svg)](LICENSE.md)
+[![Diem Rust Crate Documentation (main)](https://img.shields.io/badge/docs-main-59f)](https://diem.github.io/diem/)
+[![License](https://img.shields.io/badge/license-Apache-green.svg)](LICENSE)
+[![grcov](https://img.shields.io/badge/Coverage-grcov-green)](https://ci-artifacts.diem.com/coverage/unit-coverage/latest/index.html)
+[![test history](https://img.shields.io/badge/Test-History-green)](https://ci-artifacts.diem.com/testhistory/diem/diem/auto/ci-test.yml/index.html)
+[![Automated Issues](https://img.shields.io/github/issues-search?color=orange&label=Automated%20Issues&query=repo%3Adiem%2Fdiem%20is%3Aopen%20author%3Aapp%2Fgithub-actions)](https://github.com/diem/diem/issues/created_by/app/github-actions)
+[![Discord chat](https://img.shields.io/discord/903339070925721652.svg?logo=discord&style=flat-square)](https://discord.gg/epNwRT2wcd)
 
-Libra Core implements a decentralized, programmable database which provides a financial infrastructure that can empower billions of people.
+
+Diem Core implements a decentralized, programmable database which provides a financial infrastructure that can empower billions of people.
 
 ## Note to Developers
-* Libra Core is a prototype.
+* Diem Core is a prototype.
 * The APIs are constantly evolving and designed to demonstrate types of functionality. Expect substantial changes before the release.
-* We’ve launched a testnet that is a live demonstration of an early prototype of the Libra Blockchain software.
-
-## Contributing
-
-Read our [Contributing guide](https://developers.libra.org/docs/community/contributing). Find out what’s coming on our [blog](https://developers.libra.org/blog/2019/06/18/the-path-forward).
+* We’ve launched a testnet that is a live demonstration of an early prototype of the Diem Blockchain software.
 
 ## Getting Started
 
-### Learn About Libra
-* [Welcome](https://developers.libra.org/docs/welcome-to-libra)
-* [Libra Protocol: Key Concepts](https://developers.libra.org/docs/libra-protocol)
-* [Life of a Transaction](https://developers.libra.org/docs/life-of-a-transaction)
+### Learn About Diem
+* [Welcome](https://developers.diem.com/docs/welcome-to-diem)
+* [Basic Concepts](https://developers.diem.com/docs/basics/basics-txns-states)
+* [Life of a Transaction](https://developers.diem.com/docs/transactions/basics-life-of-txn)
+* [JSON-RPC SPEC](json-rpc/json-rpc-spec.md)
 
-### Try Libra Core
-* [My First Transaction](https://developers.libra.org/docs/my-first-transaction)
-* [Getting Started With Move](https://developers.libra.org/docs/move-overview)
+### Try Diem Core
+* [My First Transaction](https://developers.diem.com/docs/tutorials/tutorial-my-first-transaction)
+* [Getting Started With Move](https://diem.github.io/move/introduction.html)
 
 ### Technical Papers
-* [The Libra Blockchain](https://developers.libra.org/docs/the-libra-blockchain-paper)
-* [Move: A Language With Programmable Resources](https://developers.libra.org/docs/move-paper)
-* [State Machine Replication in the Libra Blockchain](https://developers.libra.org/docs/state-machine-replication-paper)
+* [The Diem Blockchain](https://developers.diem.com/docs/technical-papers/the-diem-blockchain-paper)
+* [Move: A Language With Programmable Resources](https://developers.diem.com/docs/technical-papers/move-paper)
+* [State Machine Replication in the Diem Blockchain](https://developers.diem.com/docs/technical-papers/state-machine-replication-paper)
 
 ### Blog
-* [Libra: The Path Forward](https://developers.libra.org/blog/2019/06/18/the-path-forward/)
-
-### Libra Codebase
-
-* [Libra Core Overview](https://developers.libra.org/docs/libra-core-overview)
-* [Admission Control](https://developers.libra.org/docs/crates/admission-control)
-* [Bytecode Verifier](https://developers.libra.org/docs/crates/bytecode-verifier)
-* [Consensus](https://developers.libra.org/docs/crates/consensus)
-* [Crypto](https://developers.libra.org/docs/crates/crypto)
-* [Execution](https://developers.libra.org/docs/crates/execution)
-* [Mempool](https://developers.libra.org/docs/crates/mempool)
-* [Move IR Compiler](https://developers.libra.org/docs/crates/ir-to-bytecode)
-* [Move Language](https://developers.libra.org/docs/crates/move-language)
-* [Network](https://developers.libra.org/docs/crates/network)
-* [Storage](https://developers.libra.org/docs/crates/storage)
-* [Virtual Machine](https://developers.libra.org/docs/crates/vm)
-
-
-## Community
-
-* Join us on the [Libra Discourse](https://community.libra.org).
-* Get the latest updates to our project by signing up for our [newsletter](https://developers.libra.org/newsletter_form).
+* [Diem: The Path Forward](https://developers.diem.com/blog/2019/06/18/the-path-forward/)
 
 ## License
 
-Libra Core is licensed as [Apache 2.0](https://github.com/libra/libra/blob/master/LICENSE).
+Diem Core is licensed as [Apache 2.0](https://github.com/diem/diem/blob/main/LICENSE).

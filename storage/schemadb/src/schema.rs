@@ -1,17 +1,17 @@
-// Copyright (c) The Libra Core Contributors
+// Copyright (c) The Diem Core Contributors
 // SPDX-License-Identifier: Apache-2.0
 
 //! This module provides traits that define the behavior of a schema and its associated key and
 //! value types, along with helpers to define a new schema with ease.
 use crate::ColumnFamilyName;
-use failure::Result;
+use anyhow::Result;
 use std::fmt::Debug;
 
 /// Macro for defining a SchemaDB schema.
 ///
 /// `define_schema!` allows a schema to be defined in the following syntax:
 /// ```
-/// use failure::Result;
+/// use anyhow::Result;
 /// use schemadb::{
 ///     define_schema,
 ///     schema::{KeyCodec, SeekKeyCodec, ValueCodec},
@@ -108,7 +108,7 @@ where
 {
     /// Delegates to [`KeyCodec::encode_key`].
     fn encode_seek_key(&self) -> Result<Vec<u8>> {
-        <K as KeyCodec<S>>::encode_key(&self)
+        <K as KeyCodec<S>>::encode_key(self)
     }
 }
 
@@ -125,17 +125,49 @@ pub trait Schema {
     type Value: ValueCodec<Self>;
 }
 
-/// Helper used in tests to assert a (key, value) pair for a certain [`Schema`] is able to convert
-/// to bytes and convert back.
-pub fn assert_encode_decode<S: Schema>(key: &S::Key, value: &S::Value) {
-    {
-        let encoded = key.encode_key().expect("Encoding key should work.");
-        let decoded = S::Key::decode_key(&encoded).expect("Decoding key should work.");
-        assert_eq!(*key, decoded);
+#[cfg(feature = "fuzzing")]
+pub mod fuzzing {
+    use crate::schema::{KeyCodec, Schema, ValueCodec};
+    use proptest::{collection::vec, prelude::*};
+
+    /// Helper used in tests to assert a (key, value) pair for a certain [`Schema`] is able to convert
+    /// to bytes and convert back.
+    pub fn assert_encode_decode<S: Schema>(key: &S::Key, value: &S::Value) {
+        {
+            let encoded = key.encode_key().expect("Encoding key should work.");
+            let decoded = S::Key::decode_key(&encoded).expect("Decoding key should work.");
+            assert_eq!(*key, decoded);
+        }
+        {
+            let encoded = value.encode_value().expect("Encoding value should work.");
+            let decoded = S::Value::decode_value(&encoded).expect("Decoding value should work.");
+            assert_eq!(*value, decoded);
+        }
     }
-    {
-        let encoded = value.encode_value().expect("Encoding value should work.");
-        let decoded = S::Value::decode_value(&encoded).expect("Decoding value should work.");
-        assert_eq!(*value, decoded);
+
+    /// Helper used in tests and fuzzers to make sure a schema never panics when decoding random bytes.
+    #[allow(unused_must_use)]
+    pub fn assert_no_panic_decoding<S: Schema>(bytes: &[u8]) {
+        S::Key::decode_key(bytes);
+        S::Value::decode_value(bytes);
+    }
+
+    pub fn arb_small_vec_u8() -> impl Strategy<Value = Vec<u8>> {
+        vec(any::<u8>(), 0..2048)
+    }
+
+    #[macro_export]
+    macro_rules! test_no_panic_decoding {
+        ($schema_type: ty) => {
+            use proptest::prelude::*;
+            use schemadb::schema::fuzzing::{arb_small_vec_u8, assert_no_panic_decoding};
+
+            proptest! {
+                #[test]
+                fn test_no_panic_decoding(bytes in arb_small_vec_u8()) {
+                    assert_no_panic_decoding::<$schema_type>(&bytes)
+                }
+            }
+        };
     }
 }

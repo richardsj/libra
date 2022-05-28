@@ -1,19 +1,25 @@
-// Copyright (c) The Libra Core Contributors
+// Copyright (c) The Diem Core Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::proto::shared::mempool_status::MempoolAddTransactionStatus as ProtoMempoolAddTransactionStatus;
-use failure::prelude::*;
-use proto_conv::{FromProto, IntoProto};
+use diem_crypto::HashValue;
+use diem_types::{
+    account_address::AccountAddress,
+    account_config::AccountSequenceInfo,
+    transaction::{GovernanceRole, SignedTransaction},
+};
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use types::{account_address::AccountAddress, transaction::SignedTransaction};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MempoolTransaction {
     pub txn: SignedTransaction,
-    // system expiration time of transaction. It should be removed from mempool by that time
+    // System expiration time of the transaction. It should be removed from mempool by that time.
     pub expiration_time: Duration,
     pub gas_amount: u64,
+    pub ranking_score: u64,
     pub timeline_state: TimelineState,
+    pub governance_role: GovernanceRole,
+    pub sequence_info: SequenceInfo,
 }
 
 impl MempoolTransaction {
@@ -21,17 +27,23 @@ impl MempoolTransaction {
         txn: SignedTransaction,
         expiration_time: Duration,
         gas_amount: u64,
+        ranking_score: u64,
         timeline_state: TimelineState,
+        governance_role: GovernanceRole,
+        seqno_type: AccountSequenceInfo,
     ) -> Self {
         Self {
+            sequence_info: SequenceInfo {
+                transaction_sequence_number: txn.sequence_number(),
+                account_sequence_number_type: seqno_type,
+            },
             txn,
-            gas_amount,
             expiration_time,
+            gas_amount,
+            ranking_score,
             timeline_state,
+            governance_role,
         }
-    }
-    pub(crate) fn get_sequence_number(&self) -> u64 {
-        self.txn.sequence_number()
     }
     pub(crate) fn get_sender(&self) -> AccountAddress {
         self.txn.sender()
@@ -39,85 +51,25 @@ impl MempoolTransaction {
     pub(crate) fn get_gas_price(&self) -> u64 {
         self.txn.gas_unit_price()
     }
+    pub(crate) fn get_committed_hash(&self) -> HashValue {
+        self.txn.clone().committed_hash()
+    }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Deserialize, Hash, Serialize)]
 pub enum TimelineState {
-    // transaction is ready for broadcast
-    // Associated integer represents it's position in log of such transactions
+    // The transaction is ready for broadcast.
+    // Associated integer represents it's position in the log of such transactions.
     Ready(u64),
-    // transaction is not yet ready for broadcast
-    // but it might change in a future
+    // Transaction is not yet ready for broadcast, but it might change in a future.
     NotReady,
-    // transaction will never be qualified for broadcasting
-    // currently we don't broadcast transactions originated on other peers
+    // Transaction will never be qualified for broadcasting.
+    // Currently we don't broadcast transactions originated on other peers.
     NonQualified,
 }
 
-/// Status of transaction insertion operation
-#[derive(Debug, PartialEq, Eq, Clone)]
-pub enum MempoolAddTransactionStatus {
-    /// Transaction was successfully sent to Mempool
-    Valid,
-    /// The sender does not have enough balance for the transaction
-    InsufficientBalance,
-    /// Transaction sequence number is invalid(e.g. too old)
-    InvalidSeqNumber,
-    /// Mempool is full (reached max global capacity)
-    MempoolIsFull,
-    /// Account reached max capacity per account
-    TooManyTransactions,
-    /// Invalid update. Only gas price increase is allowed
-    InvalidUpdate,
-}
-
-impl IntoProto for MempoolAddTransactionStatus {
-    type ProtoType = crate::proto::shared::mempool_status::MempoolAddTransactionStatus;
-
-    fn into_proto(self) -> Self::ProtoType {
-        match self {
-            MempoolAddTransactionStatus::Valid => ProtoMempoolAddTransactionStatus::Valid,
-            MempoolAddTransactionStatus::InsufficientBalance => {
-                ProtoMempoolAddTransactionStatus::InsufficientBalance
-            }
-            MempoolAddTransactionStatus::InvalidSeqNumber => {
-                ProtoMempoolAddTransactionStatus::InvalidSeqNumber
-            }
-            MempoolAddTransactionStatus::InvalidUpdate => {
-                ProtoMempoolAddTransactionStatus::InvalidUpdate
-            }
-            MempoolAddTransactionStatus::MempoolIsFull => {
-                ProtoMempoolAddTransactionStatus::MempoolIsFull
-            }
-            MempoolAddTransactionStatus::TooManyTransactions => {
-                ProtoMempoolAddTransactionStatus::TooManyTransactions
-            }
-        }
-    }
-}
-
-impl FromProto for MempoolAddTransactionStatus {
-    type ProtoType = crate::proto::shared::mempool_status::MempoolAddTransactionStatus;
-
-    fn from_proto(object: Self::ProtoType) -> Result<Self> {
-        let ret = match object {
-            ProtoMempoolAddTransactionStatus::Valid => MempoolAddTransactionStatus::Valid,
-            ProtoMempoolAddTransactionStatus::InsufficientBalance => {
-                MempoolAddTransactionStatus::InsufficientBalance
-            }
-            ProtoMempoolAddTransactionStatus::InvalidSeqNumber => {
-                MempoolAddTransactionStatus::InvalidSeqNumber
-            }
-            ProtoMempoolAddTransactionStatus::InvalidUpdate => {
-                MempoolAddTransactionStatus::InvalidUpdate
-            }
-            ProtoMempoolAddTransactionStatus::MempoolIsFull => {
-                MempoolAddTransactionStatus::MempoolIsFull
-            }
-            ProtoMempoolAddTransactionStatus::TooManyTransactions => {
-                MempoolAddTransactionStatus::TooManyTransactions
-            }
-        };
-        Ok(ret)
-    }
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub struct SequenceInfo {
+    pub transaction_sequence_number: u64,
+    pub account_sequence_number_type: AccountSequenceInfo,
 }
